@@ -24,11 +24,6 @@ function mapProposalToOffer(product, index) {
   const listPrice = Number(product.listPrice || product.price || 0);
   const price = Number(product.price || 0);
   
-  let imgHtml = '<div style="background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center;border-radius:12px;font-size:2.25rem">🛒</div>';
-  if (typeof window.iconForProduct === 'function') {
-      imgHtml = window.iconForProduct({ ...product, imageUrl: product.imageUrl });
-  }
-
   return {
     id: index,
     backendProductId: product.id,
@@ -39,7 +34,8 @@ function mapProposalToOffer(product, index) {
     price,
     discount: Number(product.discountPct || 0),
     score: Number(product.score || 0),
-    image: imgHtml,
+    image: "",
+    imageUrl: product.imageUrl,
     category: product.category || "otros",
     savings: Math.max(0, listPrice - price),
     description:

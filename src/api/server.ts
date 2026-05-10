@@ -98,10 +98,20 @@ app.post("/chat", async (req, res) => {
         });
       } catch (retryErr: unknown) {
         const retryMsg = retryErr instanceof Error ? retryErr.message : String(retryErr);
-        return res.status(500).json({ ok: false, error: "agent_failure", message: retryMsg });
+        console.error("[server] Agent retry failed:", retryMsg);
+        return res.status(500).json({
+          ok: false,
+          error: "agent_failure",
+          message: "No se pudo procesar la consulta. Probá de nuevo en unos segundos.",
+        });
       }
     }
-    return res.status(500).json({ ok: false, error: "agent_failure", message: msg });
+    console.error("[server] Agent failed:", msg);
+    return res.status(500).json({
+      ok: false,
+      error: "agent_failure",
+      message: "No se pudo procesar la consulta. Probá de nuevo en unos segundos.",
+    });
   }
 });
 

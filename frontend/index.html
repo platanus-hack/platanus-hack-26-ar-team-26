@@ -894,13 +894,11 @@
 
         // Helper: genera la imagen correcta para cualquier offer
         function getOfferImage(offer) {
-            // Si offer.image ya es HTML de <img> (viene del backend), usarlo tal cual
-            if (offer.image && offer.image.includes('<img')) return offer.image;
-            // Si no, generar con Pollinations usando el nombre del producto
             if (typeof window.iconForProduct === 'function') {
-                return window.iconForProduct({ name: offer.product, id: offer.id, tags: [] });
+                return window.iconForProduct({ name: offer.product, id: offer.id, imageUrl: offer.imageUrl, tags: [] });
             }
-            return offer.image || '🛒';
+            if (typeof offer.image === 'string' && !offer.image.includes('<')) return escapeHtml(offer.image);
+            return '🛒';
         }
 
         function renderPreviewOffers() {
@@ -947,6 +945,9 @@
             
             state.offers.forEach((offer, index) => {
                 const isSelected = state.selectedOffers.includes(index);
+                const productName = escapeHtml(offer.product || '');
+                const storeName = escapeHtml(offer.store || 'Tienda');
+                const categoryName = escapeHtml(offer.category || '');
                 
                 const div = document.createElement('div');
                 div.className = `offer-card modern-card border ${isSelected ? 'border-yellow-400 ring-2 ring-yellow-200 bg-yellow-50/30' : 'border-slate-200'} bg-white rounded-3xl p-5 flex flex-col cursor-pointer`;
@@ -957,8 +958,8 @@
                         <div class="flex-1 min-w-0">
                             <div class="flex justify-between items-start gap-2">
                                 <div>
-                                    <div class="font-extrabold text-lg leading-tight">${offer.product}</div>
-                                    <div class="text-xs font-medium text-slate-500 mt-0.5">${offer.store} • ${offer.category}</div>
+                                    <div class="font-extrabold text-lg leading-tight">${productName}</div>
+                                    <div class="text-xs font-medium text-slate-500 mt-0.5">${storeName} • ${categoryName}</div>
                                 </div>
                                 <div class="text-right flex-shrink-0">
                                     ${offer.discount > 0 ? `<div class="discount-badge">-${offer.discount}%</div>` : ''}
@@ -1034,13 +1035,17 @@
             const addBtn = document.getElementById('detalle-add-btn');
             
             const isSelected = state.selectedOffers.includes(offer.id);
+            const productName = escapeHtml(offer.product || '');
+            const storeName = escapeHtml(offer.store || 'Tienda');
+            const categoryName = escapeHtml(offer.category || '');
+            const description = escapeHtml(offer.description || '');
             
             content.innerHTML = `
                 <div class="flex gap-5">
                     <div class="w-20 h-20 flex-shrink-0 bg-slate-100 rounded-3xl overflow-hidden shadow-inner">${getOfferImage(offer)}</div>
                     <div class="flex-1">
-                        <div class="font-extrabold text-2xl">${offer.product}</div>
-                        <div class="text-emerald-600 font-medium">${offer.store} • ${offer.category}</div>
+                        <div class="font-extrabold text-2xl">${productName}</div>
+                        <div class="text-emerald-600 font-medium">${storeName} • ${categoryName}</div>
                         
                         <div class="mt-3 flex items-baseline gap-x-3">
                             <span class="text-5xl font-extrabold tracking-tighter">$${offer.price.toLocaleString('es-AR')}</span>
@@ -1057,7 +1062,7 @@
                 
                 <div class="mt-5">
                     <div class="text-sm font-semibold text-slate-600 mb-1">Descripción</div>
-                    <p class="text-sm leading-relaxed text-slate-700">${offer.description}</p>
+                    <p class="text-sm leading-relaxed text-slate-700">${description}</p>
                 </div>
             `;
             
@@ -1094,14 +1099,16 @@
                 const offer = state.offers[idx];
                 total += offer.price;
                 totalSavings += offer.savings;
+                const productName = escapeHtml(offer.product || '');
+                const storeName = escapeHtml(offer.store || 'Tienda');
                 
                 const div = document.createElement('div');
                 div.className = `flex gap-4 bg-white border border-slate-100 p-3.5 rounded-2xl items-center`;
                 div.innerHTML = `
-                    <div class="w-10 h-10 flex-shrink-0 bg-slate-50 rounded-lg overflow-hidden">${offer.image}</div>
+                    <div class="w-10 h-10 flex-shrink-0 bg-slate-50 rounded-lg overflow-hidden">${getOfferImage(offer)}</div>
                     <div class="flex-1 text-sm">
-                        <div class="font-extrabold">${offer.product}</div>
-                        <div class="text-emerald-600 text-xs">${offer.store}</div>
+                        <div class="font-extrabold">${productName}</div>
+                        <div class="text-emerald-600 text-xs">${storeName}</div>
                         <div class="flex justify-between items-center mt-2">
                             <div><span class="font-mono text-xl font-extrabold">$${offer.price.toLocaleString('es-AR')}</span> <span class="price-old text-xs">$${offer.originalPrice.toLocaleString('es-AR')}</span></div>
                             <div class="discount-badge">-${offer.discount}%</div>
