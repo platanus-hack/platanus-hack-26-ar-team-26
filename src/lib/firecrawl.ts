@@ -78,11 +78,21 @@ export async function searchGoogleShoppingWithFirecrawl(query: string): Promise<
         stock: 10,
         discountPct,
         tags: p.name.toLowerCase().split(/\s+/).filter((t: string) => t.length > 2),
-        imageUrl: p.imageUrl && p.imageUrl.startsWith('https://') ? p.imageUrl : undefined,
+        imageUrl: safeHttpsUrl(p.imageUrl),
       };
     });
   } catch (error) {
     console.error(`Error de red con Firecrawl para ${query}:`, error);
     return [];
+  }
+}
+
+function safeHttpsUrl(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" ? url.href : undefined;
+  } catch {
+    return undefined;
   }
 }

@@ -7,20 +7,37 @@
 
 window.iconForProduct = function(product) {
   const productName = product.name || 'Producto';
-  const escapedName = productName.replace(/"/g, '&quot;');
+  const escapedName = escapeAttribute(productName);
 
   // ===== PRIORIDAD 1: Imagen real scrapeada del sitio =====
-  if (product.imageUrl && product.imageUrl.startsWith('https://')) {
+  const imageUrl = safeHttpsUrl(product.imageUrl);
+  if (imageUrl) {
     const fallbackUrl = buildPollinationsUrl(productName);
-    return `<img src="${product.imageUrl}" alt="${escapedName}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.onerror=null;this.src='${fallbackUrl}'" loading="lazy" crossorigin="anonymous" />`;
+    return `<img src="${escapeAttribute(imageUrl)}" alt="${escapedName}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.onerror=null;this.src='${escapeAttribute(fallbackUrl)}'" loading="lazy" crossorigin="anonymous" />`;
   }
 
   // ===== PRIORIDAD 2: Pollinations AI con nombre exacto del producto =====
   const pollinationsUrl = buildPollinationsUrl(productName);
   const placeholderUrl = `https://placehold.co/300x300/f8fafc/64748b?text=${encodeURIComponent(productName.substring(0,20))}`;
 
-  return `<img src="${pollinationsUrl}" alt="${escapedName}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.onerror=null;this.src='${placeholderUrl}'" loading="lazy" />`;
+  return `<img src="${escapeAttribute(pollinationsUrl)}" alt="${escapedName}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.onerror=null;this.src='${escapeAttribute(placeholderUrl)}'" loading="lazy" />`;
 };
+
+function safeHttpsUrl(value) {
+  if (typeof value !== 'string') return '';
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' ? url.href : '';
+  } catch {
+    return '';
+  }
+}
+
+function escapeAttribute(value) {
+  return String(value).replace(/[&<>"']/g, (char) => {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+  });
+}
 
 function buildPollinationsUrl(productName) {
   const seed = Math.abs(hashCode(productName));
